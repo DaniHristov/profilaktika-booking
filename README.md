@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Записване за профилактични прегледи
 
-## Getting Started
+Спецификация и взети решения: [CLAUDE.md](CLAUDE.md). Изисквания на клиента: [docs/client-requirements.md](docs/client-requirements.md).
 
-First, run the development server:
+## Локален старт
+
+Изисквания: Node 24 LTS (`.nvmrc`), Docker Desktop.
 
 ```bash
+npm install
+npm run db:start      # локален Supabase в Docker, прилага миграциите и seed-а
+cp .env.example .env.local
+# попълнете NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY и
+# SUPABASE_SERVICE_ROLE_KEY от `npx supabase status`
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Скриптове
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Скрипт | Какво прави |
+|---|---|
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm test` | Vitest unit тестове (`tests/`) |
+| `npm run test:db` | pgTAP тестове за права и RLS (`supabase/tests/`), изисква работещ локален Supabase |
+| `npm run db:reset` | пресъздава локалната база от миграциите и seed-а |
+| `npm run db:types` | генерира `lib/supabase/database.types.ts` от локалната база |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Промени по схемата се правят само като нова миграция: `npx supabase migration new <име>`.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Seed-ът създава кампания `profilaktika-test` с часове за следващите 2 работни дни.
