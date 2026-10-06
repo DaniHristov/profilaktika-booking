@@ -11,7 +11,8 @@ npm install
 npm run db:start      # локален Supabase в Docker, прилага миграциите и seed-а
 cp .env.example .env.local
 # попълнете NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY и
-# SUPABASE_SERVICE_ROLE_KEY от `npx supabase status`
+# SUPABASE_SERVICE_ROLE_KEY от `npx supabase status`;
+# Turnstile: тестовите ключове от .env.example; IP_HASH_SECRET: случаен низ (32+ знака)
 npm run dev
 ```
 
@@ -22,10 +23,11 @@ npm run dev
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript (`tsc --noEmit`) |
 | `npm test` | Vitest unit тестове (`tests/`) |
+| `npm run test:integration` | тестове срещу локалния Supabase, вкл. 20 паралелни записвания за един час |
 | `npm run test:db` | pgTAP тестове за права и RLS (`supabase/tests/`), изисква работещ локален Supabase |
 | `npm run db:reset` | пресъздава локалната база от миграциите и seed-а |
 | `npm run db:types` | генерира `lib/supabase/database.types.ts` от локалната база |
 
 Промени по схемата се правят само като нова миграция: `npx supabase migration new <име>`.
 
-Seed-ът създава кампания `profilaktika-test` с часове за следващите 2 работни дни.
+Seed-ът създава кампания `profilaktika-test` с часове за следващите 2 работни дни: http://localhost:3000/book/profilaktika-test
