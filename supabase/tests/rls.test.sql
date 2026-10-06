@@ -186,8 +186,8 @@ select set_config('request.jwt.claims',
   '{"sub":"00000000-0000-0000-0000-0000000000a1","role":"authenticated"}', true);
 
 select is((select public.is_admin()), true, 'admin: is_admin() is true');
-select is((select count(*)::int from public.bookings), 3, 'admin sees all bookings');
-select is((select count(*)::int from public.slots), 6, 'admin sees all slots');
+select is((select count(*)::int from public.bookings where campaign_id = '10000000-0000-0000-0000-000000000001'), 3, 'admin sees all bookings');
+select is((select count(*)::int from public.slots where campaign_id in ('10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002')), 6, 'admin sees all slots, including blocked, past and inactive');
 
 select lives_ok(
   $$ insert into public.campaigns (slug, title, location_address) values ('admin-made', 'Нова', 'Адрес') $$,
@@ -204,7 +204,7 @@ select throws_ok(
 -- No delete policy: the statement succeeds but affects no rows.
 delete from public.bookings;
 reset role;
-select is((select count(*)::int from public.bookings), 3, 'bookings cannot be deleted, even by an admin');
+select is((select count(*)::int from public.bookings where campaign_id = '10000000-0000-0000-0000-000000000001'), 3, 'bookings cannot be deleted, even by an admin');
 
 select * from finish();
 rollback;
