@@ -13,3 +13,16 @@ export function getServiceRoleEnv() {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   });
 }
+
+export const bookingEnvSchema = z.object({
+  TURNSTILE_SECRET_KEY: z.string().min(1),
+  // HMAC key for hashing client IPs in the rate limiter.
+  IP_HASH_SECRET: z.string().min(32),
+});
+
+export function getBookingEnv() {
+  return parseEnv(bookingEnvSchema, {
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+    IP_HASH_SECRET: process.env.IP_HASH_SECRET,
+  });
+}

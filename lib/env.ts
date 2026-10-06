@@ -33,3 +33,13 @@ export function getPublicSupabaseEnv() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   });
 }
+
+export const publicTurnstileEnvSchema = z.object({
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+});
+
+export function getPublicTurnstileEnv() {
+  return parseEnv(publicTurnstileEnvSchema, {
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  });
+}
