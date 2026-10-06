@@ -73,6 +73,20 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"rate_limit_hits": {
+                  Row: {
+                    "created_at": string,"id": number,"ip_hash": string,"kind": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: never,"ip_hash": string,"kind": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: never,"ip_hash"?: string,"kind"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"slots": {
                   Row: {
                     "campaign_id": string,"capacity": number,"duration_min": number,"id": string,"is_blocked": boolean,"starts_at": string
@@ -99,7 +113,15 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "get_availability":
+            "book_slot":
+{ Args: { "p_email": string,"p_full_name": string,"p_notes": string,"p_phone": string,"p_slot_id": string,"p_workplace": string }; Returns: {
+              "booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
+"check_rate_limit":
+{ Args: { "p_ip_hash": string,"p_kind": string,"p_limit": number,"p_record"?: boolean,"p_window": string }; Returns: boolean
+                           },
+"get_availability":
 { Args: { "p_slug": string }; Returns: {
               "available_count": number,"duration_min": number,"slot_id": string,"starts_at": string
             }[]
