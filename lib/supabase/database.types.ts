@@ -41,14 +41,14 @@ isOneToOne: false
                   ]
                 },"bookings": {
                   Row: {
-                    "campaign_id": string,"cancel_token": string,"consent_at": string,"created_at": string,"email": string,"full_name": string,"id": string,"notes": string | null,"phone": string,"slot_id": string,"status": string,"updated_at": string,"workplace": string | null
+                    "campaign_id": string,"cancel_token": string,"confirmation_sent_at": string | null,"consent_at": string,"created_at": string,"email": string,"full_name": string,"id": string,"notes": string | null,"phone": string,"slot_id": string,"status": string,"updated_at": string,"workplace": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "campaign_id": string,"cancel_token"?: string,"consent_at": string,"created_at"?: string,"email": string,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"slot_id": string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "campaign_id": string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at": string,"created_at"?: string,"email": string,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"slot_id": string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Update: {
-                    "campaign_id"?: string,"cancel_token"?: string,"consent_at"?: string,"created_at"?: string,"email"?: string,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"slot_id"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "campaign_id"?: string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at"?: string,"created_at"?: string,"email"?: string,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"slot_id"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Relationships: [
                     {
@@ -61,14 +61,14 @@ isOneToOne: false
                   ]
                 },"campaigns": {
                   Row: {
-                    "booking_closes_hours_before": number,"created_at": string,"id": string,"is_active": boolean,"location_address": string,"location_note": string | null,"slug": string,"title": string
+                    "allow_public_cancel": boolean,"booking_closes_hours_before": number,"cancel_closes_hours_before": number,"created_at": string,"id": string,"is_active": boolean,"location_address": string,"location_note": string | null,"slug": string,"title": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "booking_closes_hours_before"?: number,"created_at"?: string,"id"?: string,"is_active"?: boolean,"location_address": string,"location_note"?: string | null,"slug": string,"title": string
+                    "allow_public_cancel"?: boolean,"booking_closes_hours_before"?: number,"cancel_closes_hours_before"?: number,"created_at"?: string,"id"?: string,"is_active"?: boolean,"location_address": string,"location_note"?: string | null,"slug": string,"title": string
                   }
                   Update: {
-                    "booking_closes_hours_before"?: number,"created_at"?: string,"id"?: string,"is_active"?: boolean,"location_address"?: string,"location_note"?: string | null,"slug"?: string,"title"?: string
+                    "allow_public_cancel"?: boolean,"booking_closes_hours_before"?: number,"cancel_closes_hours_before"?: number,"created_at"?: string,"id"?: string,"is_active"?: boolean,"location_address"?: string,"location_note"?: string | null,"slug"?: string,"title"?: string
                   }
                   Relationships: [
                     
@@ -118,12 +118,22 @@ isOneToOne: false
               "booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"location_address": string,"location_note": string,"starts_at": string
             }[]
                            },
+"cancel_booking_by_token":
+{ Args: { "p_token": string }; Returns: {
+              "booking_id": string,"campaign_title": string,"duration_min": number,"email": string,"full_name": string,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
 "check_rate_limit":
 { Args: { "p_ip_hash": string,"p_kind": string,"p_limit": number,"p_record"?: boolean,"p_window": string }; Returns: boolean
                            },
 "get_availability":
 { Args: { "p_slug": string }; Returns: {
               "available_count": number,"duration_min": number,"slot_id": string,"starts_at": string
+            }[]
+                           },
+"get_booking_for_cancel":
+{ Args: { "p_token": string }; Returns: {
+              "campaign_title": string,"cancel_state": string,"duration_min": number,"full_name": string,"location_address": string,"location_note": string,"starts_at": string
             }[]
                            },
 "get_campaign_public":
