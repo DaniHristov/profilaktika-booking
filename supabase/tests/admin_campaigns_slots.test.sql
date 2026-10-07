@@ -190,7 +190,8 @@ select results_eq(
   'every admin change is audited once (dry runs and failures are not)'
 );
 select is(
-  (select (payload->>'created')::int from public.audit_log where action = 'slots_generate' order by id limit 1),
+  (select (payload->>'created')::int from public.audit_log
+   where action = 'slots_generate' and actor = 'admin:00000000-0000-0000-0000-00000000ad01' order by id limit 1),
   12, 'the generate audit entry records how many slots were created'
 );
 

@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 // Sections are added here as they are built (phase 4b-4d).
-const LINKS: { href: string; label: string }[] = [];
+const LINKS: { href: string; label: string }[] = [
+  { href: "/admin/campaigns", label: "Кампании" },
+];
 
 export function AdminNav() {
   const pathname = usePathname();

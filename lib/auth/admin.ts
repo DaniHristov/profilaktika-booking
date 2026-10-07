@@ -1,6 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 
 import { createClient } from "@/lib/supabase/server";
@@ -18,6 +19,9 @@ export type AdminSession =
  * admin takes effect immediately). Cached per request.
  */
 export const getAdminSession = cache(async (): Promise<AdminSession> => {
+  // Always at request time: the session check reads the clock (token expiry)
+  // and must never be prerendered or prefetched.
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;
