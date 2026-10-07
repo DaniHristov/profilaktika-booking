@@ -61,13 +61,13 @@ select is((select count(*)::int from public.admin_list_bookings('c4c00000-0000-0
 select is((select count(*)::int from public.admin_list_bookings(null, '2030-03-04', '10:00', 'all', null, 50, 0)
            where campaign_id in ('c4c00000-0000-0000-0000-000000000001', 'c4c00000-0000-0000-0000-000000000002')),
   2, 'filters by Sofia date and time');
-select is((select full_name from public.admin_list_bookings(null, null, null, 'all', 'петров', 50, 0)),
+select is((select full_name from public.admin_list_bookings(null, null, null, 'all', 'петров', 50, 0) where campaign_id in ('c4c00000-0000-0000-0000-000000000001', 'c4c00000-0000-0000-0000-000000000002')),
   'Мария Петрова', 'searches by name (case-insensitive)');
-select is((select full_name from public.admin_list_bookings(null, null, null, 'all', 'GEORGI@', 50, 0)),
+select is((select full_name from public.admin_list_bookings(null, null, null, 'all', 'GEORGI@', 50, 0) where campaign_id in ('c4c00000-0000-0000-0000-000000000001', 'c4c00000-0000-0000-0000-000000000002')),
   'Георги Георгиев', 'searches by email');
-select is((select full_name from public.admin_list_bookings(null, null, null, 'all', '0888 123', 50, 0)),
+select is((select full_name from public.admin_list_bookings(null, null, null, 'all', '0888 123', 50, 0) where campaign_id in ('c4c00000-0000-0000-0000-000000000001', 'c4c00000-0000-0000-0000-000000000002')),
   'Иван Иванов', 'searches by phone in 0888 form');
-select is((select full_name from public.admin_list_bookings(null, null, null, 'all', '29876543', 50, 0)),
+select is((select full_name from public.admin_list_bookings(null, null, null, 'all', '29876543', 50, 0) where campaign_id in ('c4c00000-0000-0000-0000-000000000001', 'c4c00000-0000-0000-0000-000000000002')),
   'Мария Петрова', 'searches by phone digits');
 select results_eq(
   $$ select count(*)::int, max(total_count)::int from public.admin_list_bookings('c4c00000-0000-0000-0000-000000000001', null, null, 'all', null, 1, 0) $$,
