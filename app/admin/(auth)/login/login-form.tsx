@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { requestMagicLinkAction } from "../../actions";
-
-const noopSubscribe = () => () => {};
 
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const hydrated = useHydrated();
 
   if (sent) {
     return (

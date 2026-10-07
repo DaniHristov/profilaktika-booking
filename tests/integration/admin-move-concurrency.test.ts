@@ -145,4 +145,32 @@ describe("admin_move_booking under concurrency", () => {
     expect(slots[fromA]).toBe(b);
     expect(slots[fromB]).toBe(a);
   });
+
+  it("a manual admin booking and public bookings racing for the last seat: exactly one wins", async () => {
+    const slot = await createSlot(94, 1);
+
+    const results = await Promise.all([
+      admin.rpc("admin_book_slot", {
+        p_slot_id: slot,
+        p_full_name: "Ръчно Записан",
+        p_phone: "+359888000000",
+        p_email: "",
+        p_workplace: "",
+        p_notes: "",
+      }),
+      ...Array.from({ length: 5 }, (_, i) =>
+        service.rpc("book_slot", {
+          p_slot_id: slot,
+          p_full_name: `Публичен ${i}`,
+          p_phone: "+359888000000",
+          p_email: `race-${i}-${randomUUID()}@test.invalid`,
+          p_workplace: "",
+          p_notes: "",
+        }),
+      ),
+    ]);
+
+    expect(results.filter((r) => !r.error)).toHaveLength(1);
+    expect(new Set(results.flatMap((r) => (r.error ? [r.error.code] : [])))).toEqual(new Set(["PB001"]));
+  });
 });

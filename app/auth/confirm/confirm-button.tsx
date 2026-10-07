@@ -1,18 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore, useTransition } from "react";
+import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { confirmSignInAction } from "../../admin/actions";
-
-const noopSubscribe = () => () => {};
 
 export function ConfirmButton({ tokenHash }: { tokenHash: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const hydrated = useHydrated();
 
   return (
     <div className="flex flex-col gap-4">

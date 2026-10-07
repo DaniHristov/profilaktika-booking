@@ -1,7 +1,12 @@
 import { parsePhoneNumberFromString } from "libphonenumber-js/max";
 import { describe, expect, it } from "vitest";
 
-import { bookingFormSchema, createBookingSchema } from "@/lib/validation/booking";
+import {
+  bookingFormSchema,
+  createAdminBookingSchema,
+  createBookingEditSchema,
+  createBookingSchema,
+} from "@/lib/validation/booking";
 
 // Same schema the server uses (server-only module can't be imported here).
 const serverSchema = createBookingSchema(parsePhoneNumberFromString);
@@ -111,5 +116,37 @@ describe("booking schema: validation", () => {
         notes: "в".repeat(1000),
       }).success,
     ).toBe(true);
+  });
+});
+
+describe("admin booking and edit schemas", () => {
+  const adminSchema = createAdminBookingSchema(parsePhoneNumberFromString);
+  const editSchema = createBookingEditSchema(parsePhoneNumberFromString);
+  const admin = {
+    slotId: valid.slotId,
+    fullName: "Обадил Се",
+    phone: "0899 555 444",
+    email: "",
+    workplace: "",
+    notes: "",
+    oralConsent: true as const,
+  };
+
+  it("allows an empty email (null) and requires oral consent", () => {
+    expect(adminSchema.parse(admin).email).toBeNull();
+    const result = adminSchema.safeParse({ ...admin, oralConsent: false });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0].message).toBe("Потвърдете, че служителят е дал устно съгласие.");
+  });
+
+  it("still validates a given email and normalizes it", () => {
+    expect(adminSchema.parse({ ...admin, email: " A@Example.com " }).email).toBe("a@example.com");
+    expect(adminSchema.safeParse({ ...admin, email: "not-an-email" }).success).toBe(false);
+  });
+
+  it("edit schema accepts an empty email; the database decides if it is allowed", () => {
+    const { slotId: _slot, oralConsent: _consent, ...contact } = admin;
+    expect(editSchema.parse(contact).email).toBeNull();
+    expect(editSchema.parse({ ...contact, email: "x@example.com" }).email).toBe("x@example.com");
   });
 });

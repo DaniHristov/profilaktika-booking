@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { CampaignFormInput } from "@/lib/admin/campaign-schema";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { saveCampaignAction } from "../actions";
 
@@ -24,6 +25,7 @@ export function CampaignForm({ campaignId, initial }: Props) {
   const [errors, setErrors] = useState<Errors>({});
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const hydrated = useHydrated();
 
   const slugChanged = campaignId !== null && values.slug.trim().toLowerCase() !== initial.slug;
 
@@ -211,7 +213,7 @@ export function CampaignForm({ campaignId, initial }: Props) {
       </div>
 
       <div>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending || !hydrated}>
           {isPending ? "Запазване…" : campaignId ? "Запази промените" : "Създай кампанията"}
         </Button>
       </div>

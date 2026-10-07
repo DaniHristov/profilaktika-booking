@@ -35,7 +35,12 @@ const selectClass =
 export default function BookingsPage({ searchParams }: PageProps<"/admin/bookings">) {
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">Записвания</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight">Записвания</h1>
+        <Button asChild>
+          <Link href="/admin/bookings/new">Ново записване</Link>
+        </Button>
+      </div>
       <Suspense fallback={<LoadingText />}>
         <Bookings searchParams={searchParams} />
       </Suspense>
@@ -94,7 +99,7 @@ async function Bookings({ searchParams }: { searchParams: PageProps<"/admin/book
                     ) : null}
                   </TableCell>
                   <TableCell className="whitespace-nowrap tabular-nums">{formatPhone(b.phone)}</TableCell>
-                  <TableCell>{b.email}</TableCell>
+                  <TableCell>{b.email ?? ""}</TableCell>
                   <TableCell>{b.workplace ?? ""}</TableCell>
                   {showCampaign ? <TableCell>{b.campaign_title}</TableCell> : null}
                   <TableCell>

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { BOOKING_LIMITS } from "@/lib/validation/booking";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { updateBookingAction } from "../actions";
 
@@ -17,6 +18,7 @@ export function BookingEditForm({ bookingId, initial }: { bookingId: string; ini
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+  const hydrated = useHydrated();
 
   const set = (key: keyof Values, value: string) => {
     setValues((v) => ({ ...v, [key]: value }));
@@ -96,7 +98,7 @@ export function BookingEditForm({ bookingId, initial }: { bookingId: string; ini
       </div>
       <p className="text-sm text-muted-foreground">Служителят не получава имейл при промяна на данните.</p>
       <div>
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending || !hydrated}>
           {isPending ? "Запазване…" : "Запази данните"}
         </Button>
       </div>

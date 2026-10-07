@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +17,7 @@ import {
   bookingFormSchema,
   type BookingField,
 } from "@/lib/validation/booking";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { bookSlotAction, refreshAvailabilityAction } from "../actions";
 import { Confirmation } from "./confirmation";
@@ -53,15 +54,6 @@ const EMPTY_FORM: FormValues = {
 const FIELD_ORDER: BookingField[] = ["slotId", "fullName", "phone", "email", "workplace", "notes", "consent"];
 
 const inputClass = "h-11 text-base md:text-base";
-
-const noopSubscribe = () => () => {};
-
-// False during SSR and before hydration. Inputs stay disabled until then, so a
-// tap or keystroke on a slow phone can not land in the DOM without React
-// knowing about it.
-function useHydrated() {
-  return useSyncExternalStore(noopSubscribe, () => true, () => false);
-}
 
 export function BookingFlow({ slug, initialSlots, turnstileSiteKey }: Props) {
   const [slots, setSlots] = useState(initialSlots);

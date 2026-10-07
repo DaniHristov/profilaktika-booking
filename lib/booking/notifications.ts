@@ -33,7 +33,8 @@ export async function sendBookingConfirmation(
     console.error(`[email] confirmation: booking ${bookingId} not loaded (${error?.code ?? "missing"})`);
     return false;
   }
-  if (booking.status !== "confirmed" || booking.confirmation_sent_at) {
+  // Admin bookings may have no email: nothing to send.
+  if (booking.status !== "confirmed" || booking.confirmation_sent_at || !booking.email) {
     return true;
   }
 

@@ -41,14 +41,14 @@ isOneToOne: false
                   ]
                 },"bookings": {
                   Row: {
-                    "campaign_id": string,"cancel_token": string,"confirmation_sent_at": string | null,"consent_at": string,"created_at": string,"email": string,"full_name": string,"id": string,"notes": string | null,"phone": string,"slot_id": string,"status": string,"updated_at": string,"workplace": string | null
+                    "campaign_id": string,"cancel_token": string,"confirmation_sent_at": string | null,"consent_at": string,"created_at": string,"created_by": string | null,"email": string | null,"full_name": string,"id": string,"notes": string | null,"phone": string,"slot_id": string,"source": string,"status": string,"updated_at": string,"workplace": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "campaign_id": string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at": string,"created_at"?: string,"email": string,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"slot_id": string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "campaign_id": string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at": string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"slot_id": string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Update: {
-                    "campaign_id"?: string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at"?: string,"created_at"?: string,"email"?: string,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"slot_id"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "campaign_id"?: string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"slot_id"?: string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Relationships: [
                     {
@@ -167,6 +167,11 @@ isOneToOne: false
           Functions: {
             "admin_actor":
 { Args: Record<PropertyKey, never>; Returns: string
+                           },
+"admin_book_slot":
+{ Args: { "p_email": string,"p_full_name": string,"p_notes": string,"p_phone": string,"p_slot_id": string,"p_workplace": string }; Returns: {
+              "booking_id": string
+            }[]
                            },
 "admin_cancel_booking":
 { Args: { "p_booking_id": string }; Returns: {

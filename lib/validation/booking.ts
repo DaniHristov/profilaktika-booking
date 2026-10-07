@@ -20,14 +20,8 @@ function optionalText(max: number, tooLong: string) {
     .transform((value) => (value === "" ? null : value));
 }
 
-/**
- * Builds the booking form schema. The phone parser is injected so the server
- * can use libphonenumber's full metadata (exact validation) while the browser
- * uses the smaller default metadata for instant feedback.
- */
-export function createBookingSchema(parsePhone: ParsePhone) {
-  return z.object({
-    slotId: z.uuid("Моля, изберете час."),
+function contactFields(parsePhone: ParsePhone) {
+  return {
     fullName: z
       .string()
       .trim()
@@ -51,13 +45,6 @@ export function createBookingSchema(parsePhone: ParsePhone) {
         // E.164, e.g. +359888123456
         return phone.number;
       }),
-    email: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .min(1, "Моля, въведете имейл.")
-      .max(BOOKING_LIMITS.email, "Имейлът е твърде дълъг.")
-      .pipe(z.email("Невалиден имейл адрес.")),
     workplace: optionalText(
       BOOKING_LIMITS.workplace,
       `Работното място може да е до ${BOOKING_LIMITS.workplace} знака.`,
@@ -66,8 +53,56 @@ export function createBookingSchema(parsePhone: ParsePhone) {
       BOOKING_LIMITS.notes,
       `Полето „Допълнително“ може да е до ${BOOKING_LIMITS.notes} знака.`,
     ),
+  };
+}
+
+const requiredEmail = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1, "Моля, въведете имейл.")
+  .max(BOOKING_LIMITS.email, "Имейлът е твърде дълъг.")
+  .pipe(z.email("Невалиден имейл адрес."));
+
+/** Optional email (admin bookings): empty becomes null. */
+const optionalEmail = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .max(BOOKING_LIMITS.email, "Имейлът е твърде дълъг.")
+  .refine((value) => value === "" || z.email().safeParse(value).success, "Невалиден имейл адрес.")
+  .transform((value) => (value === "" ? null : value));
+
+/**
+ * Builds the public booking form schema. The phone parser is injected so the
+ * server can use libphonenumber's full metadata (exact validation) while the
+ * browser uses the smaller default metadata for instant feedback.
+ */
+export function createBookingSchema(parsePhone: ParsePhone) {
+  return z.object({
+    slotId: z.uuid("Моля, изберете час."),
+    ...contactFields(parsePhone),
+    email: requiredEmail,
     consent: z.literal(true, "Необходимо е съгласие за обработка на личните данни."),
   });
+}
+
+/** Manual booking by an admin: email optional, oral consent confirmed. */
+export function createAdminBookingSchema(parsePhone: ParsePhone) {
+  return z.object({
+    slotId: z.uuid("Моля, изберете час."),
+    ...contactFields(parsePhone),
+    email: optionalEmail,
+    oralConsent: z.literal(true, "Потвърдете, че служителят е дал устно съгласие."),
+  });
+}
+
+/**
+ * Admin edit of contact data. The email may be emptied here; the database
+ * still requires it for bookings made on the public page.
+ */
+export function createBookingEditSchema(parsePhone: ParsePhone) {
+  return z.object({ ...contactFields(parsePhone), email: optionalEmail });
 }
 
 /** Schema for the browser (smaller phone metadata). */

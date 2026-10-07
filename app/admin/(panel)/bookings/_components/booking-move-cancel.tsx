@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import type { MoveTarget } from "@/lib/admin/bookings";
+import type { FreeSlot } from "@/lib/admin/bookings";
 import { formatDate, formatTime, formatWeekday } from "@/lib/datetime";
 
 import { cancelBookingAction, moveBookingAction } from "../actions";
@@ -28,7 +28,15 @@ function Feedback({ message }: { message: Message }) {
   );
 }
 
-export function BookingMove({ bookingId, targets }: { bookingId: string; targets: MoveTarget[] }) {
+export function BookingMove({
+  bookingId,
+  targets,
+  hasEmail,
+}: {
+  bookingId: string;
+  targets: FreeSlot[];
+  hasEmail: boolean;
+}) {
   const [slotId, setSlotId] = useState("");
   const [message, setMessage] = useState<Message>(null);
   const [isPending, startTransition] = useTransition();
@@ -63,7 +71,8 @@ export function BookingMove({ bookingId, targets }: { bookingId: string; targets
         </select>
       </div>
       <p className="text-sm text-muted-foreground">
-        Служителят ще получи имейл с новия час. Може да се премести и след крайния срок за записване.
+        {hasEmail ? "Служителят ще получи имейл с новия час. " : "Няма имейл: уведомете служителя по телефона. "}
+        Може да се премести и след крайния срок за записване.
       </p>
       <Feedback message={message} />
       <div>
@@ -75,7 +84,12 @@ export function BookingMove({ bookingId, targets }: { bookingId: string; targets
               const result = await moveBookingAction(bookingId, slotId);
               if (result.ok) {
                 setSlotId("");
-                setMessage({ kind: "ok", text: "Записването е преместено. Изпратихме имейл на служителя." });
+                setMessage({
+                  kind: "ok",
+                  text: hasEmail
+                    ? "Записването е преместено. Изпратихме имейл на служителя."
+                    : "Записването е преместено.",
+                });
               } else setMessage({ kind: "error", text: result.message });
             })
           }
@@ -87,14 +101,23 @@ export function BookingMove({ bookingId, targets }: { bookingId: string; targets
   );
 }
 
-export function BookingCancel({ bookingId, label }: { bookingId: string; label: string }) {
+export function BookingCancel({
+  bookingId,
+  label,
+  hasEmail,
+}: {
+  bookingId: string;
+  label: string;
+  hasEmail: boolean;
+}) {
   const [message, setMessage] = useState<Message>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-muted-foreground">
-        Служителят ще получи имейл за отмяната. Отмененото записване не може да бъде възстановено.
+        {hasEmail ? "Служителят ще получи имейл за отмяната. " : "Няма имейл: уведомете служителя по телефона. "}
+        Отмененото записване не може да бъде възстановено.
       </p>
       <Feedback message={message} />
       <div>
@@ -108,7 +131,7 @@ export function BookingCancel({ bookingId, label }: { bookingId: string; label: 
               const result = await cancelBookingAction(bookingId);
               setMessage(
                 result.ok
-                  ? { kind: "ok", text: "Записването е отменено. Изпратихме имейл на служителя." }
+                  ? { kind: "ok", text: hasEmail ? "Записването е отменено. Изпратихме имейл на служителя." : "Записването е отменено." }
                   : { kind: "error", text: result.message },
               );
             });

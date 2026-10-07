@@ -6,27 +6,27 @@ import { z } from "zod";
 
 import { runAdminAction, zodFieldErrors } from "@/lib/admin/action";
 import { adminErrorMessage, type AdminActionResult } from "@/lib/admin/errors";
-import { sendCancellationEmail, sendMovedEmail } from "@/lib/booking/notifications";
+import {
+  sendBookingConfirmation,
+  sendCancellationEmail,
+  sendMovedEmail,
+} from "@/lib/booking/notifications";
 import { cancelUrlFor, type BookingEmailData } from "@/lib/email/booking-emails";
 import { getEmailTransport } from "@/lib/email/transport";
 import { getAppUrl } from "@/lib/env.server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { bookingServerSchema } from "@/lib/validation/booking.server";
+import {
+  adminBookingServerSchema,
+  bookingEditServerSchema,
+} from "@/lib/validation/booking.server";
 
 const uuid = z.uuid();
-
-const editSchema = bookingServerSchema.pick({
-  fullName: true,
-  phone: true,
-  email: true,
-  workplace: true,
-  notes: true,
-});
 
 export async function updateBookingAction(bookingId: string, input: unknown): Promise<AdminActionResult> {
   return runAdminAction(async () => {
     if (!uuid.safeParse(bookingId).success) return { ok: false, message: adminErrorMessage("PB105") };
-    const parsed = editSchema.safeParse(input);
+    const parsed = bookingEditServerSchema.safeParse(input);
     if (!parsed.success) {
       return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: zodFieldErrors(parsed.error) };
     }
@@ -36,7 +36,7 @@ export async function updateBookingAction(bookingId: string, input: unknown): Pr
       p_booking_id: bookingId,
       p_full_name: b.fullName,
       p_phone: b.phone,
-      p_email: b.email,
+      p_email: b.email ?? "",
       p_workplace: b.workplace ?? "",
       p_notes: b.notes ?? "",
     });
@@ -44,7 +44,12 @@ export async function updateBookingAction(bookingId: string, input: unknown): Pr
       return {
         ok: false,
         message: adminErrorMessage(error.code),
-        fieldErrors: error.code === "PB002" ? { email: adminErrorMessage("PB002") } : undefined,
+        fieldErrors:
+          error.code === "PB002"
+            ? { email: adminErrorMessage("PB002") }
+            : error.code === "PB103" && !b.email
+              ? { email: "Имейлът е задължителен за записвания от публичната страница." }
+              : undefined,
       };
     }
     refresh();
@@ -87,7 +92,8 @@ export async function moveBookingAction(bookingId: string, newSlotId: string): P
       locationNote: row.location_note,
     };
     const cancelUrl = row.allow_public_cancel ? cancelUrlFor(getAppUrl(), row.cancel_token) : null;
-    afterEmail(`move notice for booking ${row.booking_id}`, () =>
+    // Admin bookings may have no email.
+    if (row.email) afterEmail(`move notice for booking ${row.booking_id}`, () =>
       sendMovedEmail(email, cancelUrl, { transport: getEmailTransport() }),
     );
     refresh();
@@ -117,10 +123,49 @@ export async function cancelBookingAction(bookingId: string): Promise<AdminActio
       locationAddress: row.location_address,
       locationNote: row.location_note,
     };
-    afterEmail(`cancellation for booking ${row.booking_id}`, () =>
+    if (row.email) afterEmail(`cancellation for booking ${row.booking_id}`, () =>
       sendCancellationEmail(email, { transport: getEmailTransport() }),
     );
     refresh();
     return { ok: true, data: null };
+  });
+}
+
+/** Manual booking (e.g. after a phone call). Same locking and capacity rules. */
+export async function createAdminBookingAction(input: unknown): Promise<AdminActionResult<{ id: string }>> {
+  return runAdminAction(async () => {
+    const parsed = adminBookingServerSchema.safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: zodFieldErrors(parsed.error) };
+    }
+    const b = parsed.data;
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("admin_book_slot", {
+      p_slot_id: b.slotId,
+      p_full_name: b.fullName,
+      p_phone: b.phone,
+      p_email: b.email ?? "",
+      p_workplace: b.workplace ?? "",
+      p_notes: b.notes ?? "",
+    });
+    if (error) {
+      return {
+        ok: false,
+        message: adminErrorMessage(error.code),
+        fieldErrors: error.code === "PB002" ? { email: adminErrorMessage("PB002") } : undefined,
+      };
+    }
+    const bookingId = data[0].booking_id;
+    if (b.email) {
+      afterEmail(`confirmation for booking ${bookingId}`, () =>
+        sendBookingConfirmation(bookingId, {
+          db: createAdminClient(),
+          transport: getEmailTransport(),
+          appUrl: getAppUrl(),
+        }),
+      );
+    }
+    refresh();
+    return { ok: true, data: { id: bookingId } };
   });
 }

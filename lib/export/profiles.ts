@@ -9,7 +9,7 @@ import type { TextEncoding } from "@/lib/export/cells";
 export type ExportRecord = {
   full_name: string;
   phone: string;
-  email: string;
+  email: string | null;
   workplace: string | null;
   starts_at: string; // ISO, UTC
   notes: string | null;

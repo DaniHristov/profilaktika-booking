@@ -14,12 +14,15 @@ export type AdminBookingRow = {
   duration_min: number;
   full_name: string;
   phone: string;
-  email: string;
+  /** Optional for bookings entered by an admin. */
+  email: string | null;
   workplace: string | null;
   notes: string | null;
   status: string;
   created_at: string;
   confirmation_sent_at: string | null;
+  /** Only loaded on the booking page. */
+  source?: "public" | "admin";
 };
 
 /** One page of bookings (or all, for the export) matching the filters. */
@@ -50,7 +53,7 @@ export async function getBooking(id: string): Promise<AdminBookingRow | null> {
   const { data, error } = await supabase
     .from("bookings")
     .select(
-      "id, campaign_id, slot_id, full_name, phone, email, workplace, notes, status, created_at, confirmation_sent_at, slots(starts_at, duration_min, campaigns(title))",
+      "id, campaign_id, slot_id, full_name, phone, email, workplace, notes, status, created_at, confirmation_sent_at, source, slots(starts_at, duration_min, campaigns(title))",
     )
     .eq("id", id)
     .maybeSingle();
@@ -71,13 +74,14 @@ export async function getBooking(id: string): Promise<AdminBookingRow | null> {
     status: data.status,
     created_at: data.created_at,
     confirmation_sent_at: data.confirmation_sent_at,
+    source: data.source === "admin" ? "admin" : "public",
   };
 }
 
-export type MoveTarget = { id: string; startsAt: string; free: number };
+export type FreeSlot = { id: string; startsAt: string; free: number };
 
 /** Future, unblocked slots of the campaign with free capacity. */
-export async function listMoveTargets(campaignId: string, currentSlotId: string): Promise<MoveTarget[]> {
+export async function listFreeSlots(campaignId: string, excludeSlotId?: string): Promise<FreeSlot[]> {
   await requireAdmin();
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -88,9 +92,9 @@ export async function listMoveTargets(campaignId: string, currentSlotId: string)
     .gt("starts_at", new Date().toISOString())
     .order("starts_at")
     .limit(2000);
-  if (error) throw new Error(`listMoveTargets failed: ${error.code}`);
+  if (error) throw new Error(`listFreeSlots failed: ${error.code}`);
   return (data ?? [])
-    .filter((s) => s.id !== currentSlotId && (s.capacity ?? 0) > (s.confirmed_count ?? 0))
+    .filter((s) => s.id !== excludeSlotId && (s.capacity ?? 0) > (s.confirmed_count ?? 0))
     .map((s) => ({
       id: s.id as string,
       startsAt: s.starts_at as string,

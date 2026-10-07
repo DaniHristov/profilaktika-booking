@@ -1,11 +1,12 @@
 "use client";
 
 import { CheckCircle2 } from "lucide-react";
-import { useRef, useState, useSyncExternalStore, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { CANCEL_MESSAGES } from "@/lib/booking/cancel-messages";
 import type { CancelResult, CancelState } from "@/lib/booking/cancel";
+import { useHydrated } from "@/lib/use-hydrated";
 
 import { cancelBookingAction } from "../actions";
 
@@ -23,13 +24,11 @@ const RESULT_MESSAGES: Record<Exclude<CancelResult["status"], "cancelled">, stri
   error: CANCEL_MESSAGES.error,
 };
 
-const noopSubscribe = () => () => {};
-
 export function CancelPanel({ token, state }: { token: string; state: CancelState }) {
   const [done, setDone] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const hydrated = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const hydrated = useHydrated();
   const successRef = useRef<HTMLDivElement>(null);
   const messageRef = useRef<HTMLParagraphElement>(null);
 
