@@ -97,7 +97,9 @@ export function createFileTransport(dir: string): EmailTransport {
  * Resend when RESEND_API_KEY is set. Without it: file previews locally, and an
  * error on Vercel (no writable disk; production must send real email).
  */
-export function getEmailTransport(env: NodeJS.ProcessEnv = process.env): EmailTransport {
+export function getEmailTransport(
+  env: Record<string, string | undefined> = process.env,
+): EmailTransport {
   const apiKey = env.RESEND_API_KEY?.trim();
   if (apiKey) {
     const from = env.EMAIL_FROM?.trim();

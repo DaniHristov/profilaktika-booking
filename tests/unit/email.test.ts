@@ -162,10 +162,10 @@ describe("file transport and transport selection", () => {
   });
 
   it("requires EMAIL_FROM with Resend and refuses file mode on Vercel", () => {
-    expect(() => getEmailTransport({ RESEND_API_KEY: "re_x" } as NodeJS.ProcessEnv)).toThrow(
+    expect(() => getEmailTransport({ RESEND_API_KEY: "re_x" })).toThrow(
       "EMAIL_FROM",
     );
-    expect(() => getEmailTransport({ VERCEL: "1" } as NodeJS.ProcessEnv)).toThrow("RESEND_API_KEY");
-    expect(typeof getEmailTransport({} as NodeJS.ProcessEnv)).toBe("function");
+    expect(() => getEmailTransport({ VERCEL: "1" })).toThrow("RESEND_API_KEY");
+    expect(typeof getEmailTransport({})).toBe("function");
   });
 });
