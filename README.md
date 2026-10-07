@@ -74,3 +74,12 @@ Seed-ът създава кампания `profilaktika-test` с часове з
 - **Authentication → URL Configuration**: Site URL = `NEXT_PUBLIC_APP_URL`; в Redirect URLs добавете `<NEXT_PUBLIC_APP_URL>/auth/confirm`.
 - **Authentication → Email Templates → Magic Link**: тема „Вход в админ панела за профилактични прегледи“, съдържание от `supabase/templates/magic-link.html`.
 - **Authentication → SMTP Settings**: включете custom SMTP през Resend (host `smtp.resend.com`, port 465, user `resend`, парола = Resend API ключ, подател от потвърдения домейн). Вграденият SMTP на Supabase праща само до членове на екипа и няколко имейла на час.
+
+## Експорт
+
+От **Записвания** → бутоните за експорт изтеглят всички записвания по текущите филтри (не само текущата страница):
+
+- **Excel (.xlsx)** и **CSV** (UTF-8 с BOM, разделител `;`, отваря се директно в българския Excel);
+- **Експорт за JOYSTICK**: отделен профил.
+
+Профилите са в `lib/export/profiles.ts`. За да промените формата за JOYSTICK (имена и ред на колоните, формат на дата/час/телефон, разделител, кодировка `utf-8`/`windows-1251`, xlsx/csv), редактирайте само `joystickProfile` в този файл. Всеки експорт се записва в `audit_log` (кой, кога, профил, филтри, брой редове, без самите данни).

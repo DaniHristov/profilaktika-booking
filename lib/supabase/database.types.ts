@@ -186,6 +186,9 @@ isOneToOne: false
               "campaign_id": string,"campaign_title": string,"confirmation_sent_at": string,"created_at": string,"duration_min": number,"email": string,"full_name": string,"id": string,"notes": string,"phone": string,"slot_id": string,"starts_at": string,"status": string,"total_count": number,"workplace": string
             }[]
                            },
+"admin_log_export":
+{ Args: { "p_filters": Json,"p_format": string,"p_profile": string,"p_row_count": number }; Returns: undefined
+                           },
 "admin_move_booking":
 { Args: { "p_booking_id": string,"p_new_slot_id": string }; Returns: {
               "allow_public_cancel": boolean,"booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"email": string,"full_name": string,"location_address": string,"location_note": string,"starts_at": string

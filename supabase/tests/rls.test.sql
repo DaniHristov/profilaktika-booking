@@ -93,7 +93,8 @@ select set_eq(
      where n.nspname = 'public' and has_function_privilege('authenticated', p.oid, 'EXECUTE') $$,
   array['get_availability', 'get_campaign_public', 'is_admin',
         'admin_save_campaign', 'admin_generate_slots', 'admin_update_slot', 'admin_delete_slot',
-        'admin_list_bookings', 'admin_update_booking', 'admin_move_booking', 'admin_cancel_booking'],
+        'admin_list_bookings', 'admin_update_booking', 'admin_move_booking', 'admin_cancel_booking',
+        'admin_log_export'],
   'authenticated can execute only the public functions, is_admin and the admin_* functions'
 );
 

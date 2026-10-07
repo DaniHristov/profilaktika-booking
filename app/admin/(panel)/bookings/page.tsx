@@ -22,6 +22,7 @@ import {
 } from "@/lib/admin/booking-filters";
 import { listBookings, listCampaignOptions } from "@/lib/admin/bookings";
 import { formatDate, formatTime } from "@/lib/datetime";
+import { joystickProfile } from "@/lib/export/profiles";
 import { formatPhone } from "@/lib/format/phone";
 
 import { LoadingText } from "../_components/loading-text";
@@ -58,6 +59,7 @@ async function Bookings({ searchParams }: { searchParams: PageProps<"/admin/book
         <p className="text-sm text-muted-foreground" role="status">
           {total === 0 ? "Няма записвания по тези филтри." : `Показани ${from}–${to} от ${total}`}
         </p>
+        {total > 0 ? <ExportLinks filters={filters} /> : null}
       </div>
 
       {rows.length > 0 ? (
@@ -167,5 +169,26 @@ function Filters({ filters, campaigns }: { filters: BookingFilters; campaigns: {
         </Button>
       </div>
     </form>
+  );
+}
+
+function ExportLinks({ filters }: { filters: BookingFilters }) {
+  // Plain <a> on purpose: next/link would prefetch the export (and log it).
+  const query = bookingFiltersToQuery(filters, { page: 1 }).replace(/^\?/, "");
+  const href = (profile: string, format?: string) =>
+    `/admin/bookings/export?profile=${profile}${format ? `&format=${format}` : ""}${query ? `&${query}` : ""}`;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="text-sm text-muted-foreground">Експорт на филтрираните:</span>
+      <Button asChild variant="outline" size="sm">
+        <a href={href("standard", "xlsx")}>Excel (.xlsx)</a>
+      </Button>
+      <Button asChild variant="outline" size="sm">
+        <a href={href("standard", "csv")}>CSV</a>
+      </Button>
+      <Button asChild variant="outline" size="sm">
+        <a href={href(joystickProfile.id)}>Експорт за {joystickProfile.label}</a>
+      </Button>
+    </div>
   );
 }
