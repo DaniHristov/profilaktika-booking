@@ -26,3 +26,14 @@ export function getBookingEnv() {
     IP_HASH_SECRET: process.env.IP_HASH_SECRET,
   });
 }
+
+export const appUrlEnvSchema = z.object({
+  // Base URL for links in emails, e.g. https://zapis.example.bg
+  NEXT_PUBLIC_APP_URL: z.url(),
+});
+
+export function getAppUrl(): string {
+  return parseEnv(appUrlEnvSchema, {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  }).NEXT_PUBLIC_APP_URL;
+}

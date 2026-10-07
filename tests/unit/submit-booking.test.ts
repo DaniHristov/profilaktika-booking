@@ -31,11 +31,24 @@ function setup({
   rateLimit = () => true,
   bookSlot = (): RpcResult => ({ data: [bookedRow], error: null }),
   turnstile = true,
+  allowPublicCancel = true,
 }: {
   rateLimit?: (args: Record<string, unknown>) => boolean;
   bookSlot?: () => RpcResult;
   turnstile?: boolean;
+  allowPublicCancel?: boolean;
 } = {}) {
+  // Minimal stand-in for db.from("slots").select(...).eq(...).maybeSingle().
+  const from = vi.fn(() => ({
+    select: () => ({
+      eq: () => ({
+        maybeSingle: async () => ({
+          data: { campaigns: { allow_public_cancel: allowPublicCancel } },
+          error: null,
+        }),
+      }),
+    }),
+  }));
   const calls: string[] = [];
   const rpc = vi.fn(async (fn: string, args: Record<string, unknown>) => {
     if (fn === "check_rate_limit") {
@@ -49,7 +62,7 @@ function setup({
     throw new Error(`unexpected rpc ${fn}`);
   });
   const deps: SubmitBookingDeps = {
-    db: { rpc } as unknown as SupabaseClient<Database>,
+    db: { rpc, from } as unknown as SupabaseClient<Database>,
     clientIp: "203.0.113.7",
     ipHashSecret: "s".repeat(32),
     verifyTurnstile: vi.fn(async () => {
@@ -157,6 +170,17 @@ describe("submitBooking", () => {
     expect(await submitBooking(validInput, "t", deps)).toEqual({
       status: "duplicate_email",
       message: BOOKING_MESSAGES.duplicateEmail,
+    });
+  });
+
+  it("does not mention the cancel link when online cancellation is disabled", async () => {
+    const { deps } = setup({
+      allowPublicCancel: false,
+      bookSlot: () => ({ data: null, error: { code: "PB002", message: "DUPLICATE_EMAIL" } }),
+    });
+    expect(await submitBooking(validInput, "t", deps)).toEqual({
+      status: "duplicate_email",
+      message: BOOKING_MESSAGES.duplicateEmailNoCancel,
     });
   });
 

@@ -8,6 +8,8 @@ export type CalendarEvent = {
   summary: string;
   location?: string | null;
   description?: string | null;
+  /** CANCEL marks the event as cancelled (same uid, higher sequence). */
+  method?: "PUBLISH" | "CANCEL";
 };
 
 function formatUtc(date: Date): string {
@@ -46,15 +48,18 @@ function foldLine(line: string): string {
 }
 
 export function buildIcs(event: CalendarEvent, now: Date = new Date()): string {
+  const cancelled = event.method === "CANCEL";
   const end = new Date(event.start.getTime() + event.durationMin * 60_000);
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
     "PRODID:-//profilaktika-booking//BG",
     "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
+    `METHOD:${cancelled ? "CANCEL" : "PUBLISH"}`,
     "BEGIN:VEVENT",
     `UID:${event.uid}`,
+    `SEQUENCE:${cancelled ? 1 : 0}`,
+    `STATUS:${cancelled ? "CANCELLED" : "CONFIRMED"}`,
     `DTSTAMP:${formatUtc(now)}`,
     `DTSTART:${formatUtc(event.start)}`,
     `DTEND:${formatUtc(end)}`,

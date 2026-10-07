@@ -55,6 +55,8 @@ export function Confirmation({ confirmation }: { confirmation: BookingConfirmati
         </h2>
       </div>
 
+      <p className="text-base text-muted-foreground">{BOOKING_MESSAGES.emailSent}</p>
+
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-base">
         <dt className="text-muted-foreground">Дата</dt>
         <dd>

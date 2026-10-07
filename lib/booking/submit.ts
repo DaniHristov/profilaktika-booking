@@ -26,6 +26,16 @@ export type SubmitBookingDeps = {
   loadAvailability: () => Promise<PublicSlot[]>;
 };
 
+/** Whether the slot's campaign lets employees cancel online (defaults to true). */
+async function allowsPublicCancel(db: SupabaseClient<Database>, slotId: string): Promise<boolean> {
+  const { data } = await db
+    .from("slots")
+    .select("campaigns(allow_public_cancel)")
+    .eq("id", slotId)
+    .maybeSingle();
+  return data?.campaigns?.allow_public_cancel ?? true;
+}
+
 /**
  * Server-side booking flow:
  * attempt rate limit → validation → Turnstile → success rate limit → book_slot.
@@ -81,7 +91,13 @@ export async function submitBooking(
       };
     }
     if (known === "duplicate_email") {
-      return { status: "duplicate_email", message: BOOKING_MESSAGES.duplicateEmail };
+      const cancellable = await allowsPublicCancel(deps.db, form.slotId);
+      return {
+        status: "duplicate_email",
+        message: cancellable
+          ? BOOKING_MESSAGES.duplicateEmail
+          : BOOKING_MESSAGES.duplicateEmailNoCancel,
+      };
     }
     // Only the error code: details may echo submitted values.
     console.error(`[booking] book_slot failed: ${error.code}`);

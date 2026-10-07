@@ -41,3 +41,17 @@ describe("buildIcs", () => {
     expect(minimal).not.toContain("DESCRIPTION:");
   });
 });
+
+describe("buildIcs: cancellation", () => {
+  it("marks the event cancelled with the same uid and a higher sequence", () => {
+    const published = buildIcs(event);
+    const cancelled = buildIcs({ ...event, method: "CANCEL" });
+    expect(published).toContain("METHOD:PUBLISH\r\n");
+    expect(published).toContain("SEQUENCE:0\r\n");
+    expect(published).toContain("STATUS:CONFIRMED\r\n");
+    expect(cancelled).toContain("METHOD:CANCEL\r\n");
+    expect(cancelled).toContain("SEQUENCE:1\r\n");
+    expect(cancelled).toContain("STATUS:CANCELLED\r\n");
+    expect(cancelled).toContain(`UID:${event.uid}\r\n`);
+  });
+});
