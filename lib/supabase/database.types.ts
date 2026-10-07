@@ -168,6 +168,11 @@ isOneToOne: false
             "admin_actor":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"admin_cancel_booking":
+{ Args: { "p_booking_id": string }; Returns: {
+              "booking_id": string,"campaign_title": string,"duration_min": number,"email": string,"full_name": string,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
 "admin_delete_slot":
 { Args: { "p_slot_id": string }; Returns: undefined
                            },
@@ -176,8 +181,21 @@ isOneToOne: false
               "starts_at": string,"status": string
             }[]
                            },
+"admin_list_bookings":
+{ Args: { "p_campaign_id": string,"p_date": string,"p_limit": number,"p_offset": number,"p_search": string,"p_status": string,"p_time": string }; Returns: {
+              "campaign_id": string,"campaign_title": string,"confirmation_sent_at": string,"created_at": string,"duration_min": number,"email": string,"full_name": string,"id": string,"notes": string,"phone": string,"slot_id": string,"starts_at": string,"status": string,"total_count": number,"workplace": string
+            }[]
+                           },
+"admin_move_booking":
+{ Args: { "p_booking_id": string,"p_new_slot_id": string }; Returns: {
+              "allow_public_cancel": boolean,"booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"email": string,"full_name": string,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
 "admin_save_campaign":
 { Args: { "p_allow_public_cancel": boolean,"p_booking_closes_hours_before": number,"p_cancel_closes_hours_before": number,"p_id": string,"p_is_active": boolean,"p_location_address": string,"p_location_note": string,"p_slug": string,"p_title": string }; Returns: string
+                           },
+"admin_update_booking":
+{ Args: { "p_booking_id": string,"p_email": string,"p_full_name": string,"p_notes": string,"p_phone": string,"p_workplace": string }; Returns: undefined
                            },
 "admin_update_slot":
 { Args: { "p_capacity": number,"p_is_blocked": boolean,"p_slot_id": string }; Returns: undefined
