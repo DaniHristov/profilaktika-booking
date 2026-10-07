@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   buildCancellationEmail,
   buildConfirmationEmail,
+  buildMovedEmail,
   cancelUrlFor,
   type BookingEmailData,
 } from "@/lib/email/booking-emails";
@@ -76,6 +77,20 @@ export async function sendCancellationEmail(
   const result = await deps.transport(await buildCancellationEmail(data));
   if (!result.ok) {
     console.error(`[email] cancellation for booking ${data.bookingId} failed: ${result.reason}`);
+    return false;
+  }
+  return true;
+}
+
+/** Sends the "time changed" email after an admin move. Returns false on failure. */
+export async function sendMovedEmail(
+  data: BookingEmailData,
+  cancelUrl: string | null,
+  deps: { transport: EmailTransport },
+): Promise<boolean> {
+  const result = await deps.transport(await buildMovedEmail(data, cancelUrl));
+  if (!result.ok) {
+    console.error(`[email] move notice for booking ${data.bookingId} failed: ${result.reason}`);
     return false;
   }
   return true;

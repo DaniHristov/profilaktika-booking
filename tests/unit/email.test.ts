@@ -169,3 +169,24 @@ describe("file transport and transport selection", () => {
     expect(typeof getEmailTransport({})).toBe("function");
   });
 });
+
+describe("moved email", () => {
+  it("shows the new time, asks to delete the old one and attaches the new .ics", async () => {
+    const { buildMovedEmail } = await import("@/lib/email/booking-emails");
+    const moved = { ...data, startsAt: new Date("2026-10-16T07:30:00Z") };
+    const email = await buildMovedEmail(moved, cancelUrl);
+
+    expect(email.subject).toBe("Промяна на час: профилактичен преглед на 16.10.2026 от 10:30");
+    expect(email.idempotencyKey).toBe(`booking-moved/${data.bookingId}/2026-10-16T07:30:00.000Z`);
+    for (const body of [email.html, email.text]) {
+      expect(body).toContain("16.10.2026");
+      expect(body).toContain("10:30");
+      expect(body).toContain("Ако сте добавили прегледа в календара си, моля, изтрийте стария час.");
+      expect(body).toContain("/cancel/");
+    }
+    const [ics] = email.attachments ?? [];
+    expect(ics.content).toContain("METHOD:PUBLISH");
+    expect(ics.content).toContain("DTSTART:20261016T073000Z");
+    expect(ics.content).toMatch(/SEQUENCE:[1-9]\d*/);
+  });
+});

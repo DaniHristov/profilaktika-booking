@@ -5,43 +5,23 @@ import { z } from "zod";
 
 import { campaignSchema } from "@/lib/admin/campaign-schema";
 import { MAX_GENERATOR_DAYS } from "@/lib/admin/dates";
+import { runAdminAction, zodFieldErrors } from "@/lib/admin/action";
 import { adminErrorMessage, type AdminActionResult } from "@/lib/admin/errors";
-import { NotAdminError, requireAdmin } from "@/lib/auth/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const uuid = z.uuid();
-
-async function guard<T>(run: () => Promise<AdminActionResult<T>>): Promise<AdminActionResult<T>> {
-  try {
-    await requireAdmin();
-    return await run();
-  } catch (error) {
-    if (error instanceof NotAdminError) return { ok: false, message: adminErrorMessage("PB100") };
-    console.error("[admin] action failed:", (error as Error).message);
-    return { ok: false, message: adminErrorMessage(undefined) };
-  }
-}
-
-function fieldErrorsOf(error: z.ZodError): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0]);
-    result[key] ??= issue.message;
-  }
-  return result;
-}
 
 export async function saveCampaignAction(
   id: string | null,
   input: unknown,
 ): Promise<AdminActionResult<{ id: string }>> {
-  return guard(async () => {
+  return runAdminAction(async () => {
     if (id !== null && !uuid.safeParse(id).success) {
       return { ok: false, message: adminErrorMessage("PB105") };
     }
     const parsed = campaignSchema.safeParse(input);
     if (!parsed.success) {
-      return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: fieldErrorsOf(parsed.error) };
+      return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: zodFieldErrors(parsed.error) };
     }
     const c = parsed.data;
     const supabase = await createClient();
@@ -86,10 +66,10 @@ export async function generateSlotsAction(
   input: unknown,
   dryRun: boolean,
 ): Promise<AdminActionResult<GeneratedSlot[]>> {
-  return guard(async () => {
+  return runAdminAction(async () => {
     const parsed = generatorSchema.safeParse(input);
     if (!parsed.success) {
-      return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: fieldErrorsOf(parsed.error) };
+      return { ok: false, message: adminErrorMessage("PB103"), fieldErrors: zodFieldErrors(parsed.error) };
     }
     const g = parsed.data;
     if (g.end <= g.start) {
@@ -122,7 +102,7 @@ export async function updateSlotAction(
   isBlocked: boolean,
   capacity: number,
 ): Promise<AdminActionResult> {
-  return guard(async () => {
+  return runAdminAction(async () => {
     if (!uuid.safeParse(slotId).success || !Number.isInteger(capacity)) {
       return { ok: false, message: adminErrorMessage("PB103") };
     }
@@ -139,7 +119,7 @@ export async function updateSlotAction(
 }
 
 export async function deleteSlotAction(slotId: string): Promise<AdminActionResult> {
-  return guard(async () => {
+  return runAdminAction(async () => {
     if (!uuid.safeParse(slotId).success) return { ok: false, message: adminErrorMessage("PB105") };
     const supabase = await createClient();
     const { error } = await supabase.rpc("admin_delete_slot", { p_slot_id: slotId });

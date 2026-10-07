@@ -7,6 +7,7 @@ import { buildIcs } from "@/lib/calendar/ics";
 import { formatDate, formatTime, formatWeekday } from "@/lib/datetime";
 import { BookingCancelledEmail } from "@/lib/email/templates/booking-cancelled";
 import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
+import { BookingMovedEmail } from "@/lib/email/templates/booking-moved";
 import type { EmailMessage } from "@/lib/email/transport";
 
 export type BookingEmailData = {
@@ -30,7 +31,13 @@ function details(data: BookingEmailData) {
   };
 }
 
-function calendarAttachment(data: BookingEmailData, method: "PUBLISH" | "CANCEL") {
+// Changes after the original confirmation (move, cancel) get an increasing
+// sequence so calendars that do apply updates take the newest one.
+function revision(): number {
+  return Math.floor(Date.now() / 1000);
+}
+
+function calendarAttachment(data: BookingEmailData, method: "PUBLISH" | "CANCEL", sequence?: number) {
   return {
     filename: method === "CANCEL" ? "otmenen-pregled.ics" : "profilaktichen-pregled.ics",
     content: buildIcs({
@@ -41,6 +48,7 @@ function calendarAttachment(data: BookingEmailData, method: "PUBLISH" | "CANCEL"
       summary: data.campaignTitle,
       location: [data.locationAddress, data.locationNote].filter(Boolean).join(", "),
       method,
+      sequence,
     }),
     contentType: `text/calendar; charset=utf-8; method=${method}`,
   };
@@ -81,7 +89,28 @@ export async function buildCancellationEmail(data: BookingEmailData): Promise<Em
     subject: `Отменено: профилактичен преглед на ${formatDate(data.startsAt)} от ${formatTime(data.startsAt)}`,
     html: await render(element),
     text: await render(element, { plainText: true }),
-    attachments: [calendarAttachment(data, "CANCEL")],
+    attachments: [calendarAttachment(data, "CANCEL", revision())],
     idempotencyKey: `booking-cancellation/${data.bookingId}`,
+  };
+}
+
+export async function buildMovedEmail(
+  data: BookingEmailData,
+  cancelUrl: string | null,
+): Promise<EmailMessage> {
+  const element = createElement(BookingMovedEmail, {
+    fullName: data.fullName,
+    campaignTitle: data.campaignTitle,
+    details: details(data),
+    cancelUrl,
+  });
+  return {
+    to: data.email,
+    subject: `Промяна на час: профилактичен преглед на ${formatDate(data.startsAt)} от ${formatTime(data.startsAt)}`,
+    html: await render(element),
+    text: await render(element, { plainText: true }),
+    attachments: [calendarAttachment(data, "PUBLISH", revision())],
+    // One email per target time, so retrying the same move does not resend.
+    idempotencyKey: `booking-moved/${data.bookingId}/${data.startsAt.toISOString()}`,
   };
 }

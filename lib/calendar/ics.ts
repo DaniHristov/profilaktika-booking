@@ -10,6 +10,8 @@ export type CalendarEvent = {
   description?: string | null;
   /** CANCEL marks the event as cancelled (same uid, higher sequence). */
   method?: "PUBLISH" | "CANCEL";
+  /** Revision number; later changes need a higher value. Default 0 (CANCEL: 1). */
+  sequence?: number;
 };
 
 function formatUtc(date: Date): string {
@@ -58,7 +60,7 @@ export function buildIcs(event: CalendarEvent, now: Date = new Date()): string {
     `METHOD:${cancelled ? "CANCEL" : "PUBLISH"}`,
     "BEGIN:VEVENT",
     `UID:${event.uid}`,
-    `SEQUENCE:${cancelled ? 1 : 0}`,
+    `SEQUENCE:${event.sequence ?? (cancelled ? 1 : 0)}`,
     `STATUS:${cancelled ? "CANCELLED" : "CONFIRMED"}`,
     `DTSTAMP:${formatUtc(now)}`,
     `DTSTART:${formatUtc(event.start)}`,

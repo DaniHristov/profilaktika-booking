@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 // Sections are added here as they are built (phase 4b-4d).
 const LINKS: { href: string; label: string }[] = [
+  { href: "/admin/bookings", label: "Записвания" },
   { href: "/admin/campaigns", label: "Кампании" },
 ];
 
