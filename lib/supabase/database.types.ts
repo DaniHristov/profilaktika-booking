@@ -21,14 +21,14 @@ export type Database = {
                   ]
                 },"audit_log": {
                   Row: {
-                    "action": string,"actor": string,"booking_id": string | null,"created_at": string,"id": number,"payload": Json | null
+                    "action": string,"actor": string,"booking_id": string | null,"created_at": string,"entity_id": string | null,"entity_type": string | null,"id": number,"payload": Json | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "action": string,"actor": string,"booking_id"?: string | null,"created_at"?: string,"id"?: never,"payload"?: Json | null
+                    "action": string,"actor": string,"booking_id"?: string | null,"created_at"?: string,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: never,"payload"?: Json | null
                   }
                   Update: {
-                    "action"?: string,"actor"?: string,"booking_id"?: string | null,"created_at"?: string,"id"?: never,"payload"?: Json | null
+                    "action"?: string,"actor"?: string,"booking_id"?: string | null,"created_at"?: string,"entity_id"?: string | null,"entity_type"?: string | null,"id"?: never,"payload"?: Json | null
                   }
                   Relationships: [
                     {
@@ -52,6 +52,12 @@ isOneToOne: false
                   }
                   Relationships: [
                     {
+      foreignKeyName: "bookings_slot_id_campaign_id_fkey"
+      columns: ["slot_id","campaign_id"]
+isOneToOne: false
+      referencedRelation: "admin_slot_stats"
+      referencedColumns: ["id","campaign_id"]
+    },{
       foreignKeyName: "bookings_slot_id_campaign_id_fkey"
       columns: ["slot_id","campaign_id"]
 isOneToOne: false
@@ -103,6 +109,12 @@ isOneToOne: false
       foreignKeyName: "slots_campaign_id_fkey"
       columns: ["campaign_id"]
 isOneToOne: false
+      referencedRelation: "admin_campaign_stats"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "slots_campaign_id_fkey"
+      columns: ["campaign_id"]
+isOneToOne: false
       referencedRelation: "campaigns"
       referencedColumns: ["id"]
     }
@@ -110,10 +122,70 @@ isOneToOne: false
                 }
           }
           Views: {
-            [_ in never]: never
+            "admin_campaign_stats": {
+                  Row: {
+                    "allow_public_cancel": boolean | null,"booking_closes_hours_before": number | null,"cancel_closes_hours_before": number | null,"created_at": string | null,"id": string | null,"is_active": boolean | null,"location_address": string | null,"location_note": string | null,"slug": string | null,"title": string | null,"upcoming_bookings": number | null,"upcoming_slots": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "allow_public_cancel"?: boolean | null,"booking_closes_hours_before"?: number | null,"cancel_closes_hours_before"?: number | null,"created_at"?: string | null,"id"?: string | null,"is_active"?: boolean | null,"location_address"?: string | null,"location_note"?: string | null,"slug"?: string | null,"title"?: string | null,"upcoming_bookings"?: never,"upcoming_slots"?: never
+                         }
+                        Update: {
+                           "allow_public_cancel"?: boolean | null,"booking_closes_hours_before"?: number | null,"cancel_closes_hours_before"?: number | null,"created_at"?: string | null,"id"?: string | null,"is_active"?: boolean | null,"location_address"?: string | null,"location_note"?: string | null,"slug"?: string | null,"title"?: string | null,"upcoming_bookings"?: never,"upcoming_slots"?: never
+                         }
+                        Relationships: [
+                    
+                  ]
+                },"admin_slot_stats": {
+                  Row: {
+                    "campaign_id": string | null,"capacity": number | null,"confirmed_count": number | null,"duration_min": number | null,"id": string | null,"is_blocked": boolean | null,"starts_at": string | null,"total_bookings": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                           "campaign_id"?: string | null,"capacity"?: number | null,"confirmed_count"?: never,"duration_min"?: number | null,"id"?: string | null,"is_blocked"?: boolean | null,"starts_at"?: string | null,"total_bookings"?: never
+                         }
+                        Update: {
+                           "campaign_id"?: string | null,"capacity"?: number | null,"confirmed_count"?: never,"duration_min"?: number | null,"id"?: string | null,"is_blocked"?: boolean | null,"starts_at"?: string | null,"total_bookings"?: never
+                         }
+                        Relationships: [
+                    {
+      foreignKeyName: "slots_campaign_id_fkey"
+      columns: ["campaign_id"]
+isOneToOne: false
+      referencedRelation: "admin_campaign_stats"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "slots_campaign_id_fkey"
+      columns: ["campaign_id"]
+isOneToOne: false
+      referencedRelation: "campaigns"
+      referencedColumns: ["id"]
+    }
+                  ]
+                }
           }
           Functions: {
-            "book_slot":
+            "admin_actor":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
+"admin_delete_slot":
+{ Args: { "p_slot_id": string }; Returns: undefined
+                           },
+"admin_generate_slots":
+{ Args: { "p_campaign_id": string,"p_capacity": number,"p_dates": (string)[],"p_dry_run": boolean,"p_duration_min": number,"p_end": string,"p_start": string }; Returns: {
+              "starts_at": string,"status": string
+            }[]
+                           },
+"admin_save_campaign":
+{ Args: { "p_allow_public_cancel": boolean,"p_booking_closes_hours_before": number,"p_cancel_closes_hours_before": number,"p_id": string,"p_is_active": boolean,"p_location_address": string,"p_location_note": string,"p_slug": string,"p_title": string }; Returns: string
+                           },
+"admin_update_slot":
+{ Args: { "p_capacity": number,"p_is_blocked": boolean,"p_slot_id": string }; Returns: undefined
+                           },
+"assert_admin":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"book_slot":
 { Args: { "p_email": string,"p_full_name": string,"p_notes": string,"p_phone": string,"p_slot_id": string,"p_workplace": string }; Returns: {
               "booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"location_address": string,"location_note": string,"starts_at": string
             }[]
@@ -143,6 +215,9 @@ isOneToOne: false
                            },
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
+                           },
+"slot_times":
+{ Args: { "p_dates": (string)[],"p_duration_min": number,"p_end": string,"p_start": string }; Returns: string[]
                            }
           }
           Enums: {
