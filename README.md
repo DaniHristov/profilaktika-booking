@@ -47,3 +47,30 @@ Seed-ът създава кампания `profilaktika-test` с часове з
 4. Във Vercel задайте `RESEND_API_KEY`, `EMAIL_FROM` (с адрес от потвърдения домейн) и по желание `EMAIL_REPLY_TO`.
 
 Без потвърден домейн имейлите или няма да тръгнат, или ще попадат в спам.
+
+## Админ панел
+
+Вход: `/admin` → имейл → линк за вход (magic link). Публична регистрация няма.
+
+**Локално** seed-ът създава админ `admin@example.invalid` и потребител без права `notadmin@example.invalid`. Имейлите за вход се виждат в Mailpit: http://127.0.0.1:54324
+
+### Добавяне на админ (production)
+
+1. Supabase Dashboard → **Authentication → Users → Add user → Create new user**: въведете имейла, оставете **Auto Confirm User** включено. Парола не е нужна.
+2. Supabase Dashboard → **SQL Editor**:
+
+   ```sql
+   insert into public.admins (user_id, email)
+   select id, email from auth.users where email = 'ime@example.bg';
+   ```
+
+3. Човекът влиза през `/admin` с този имейл.
+
+Премахване на админ: `delete from public.admins where email = 'ime@example.bg';`. Действа веднага, защото всяка заявка проверява таблицата.
+
+### Настройки на Supabase Auth (production)
+
+- **Authentication → Sign In / Providers**: изключете **Allow new users to sign up**; Email provider остава включен.
+- **Authentication → URL Configuration**: Site URL = `NEXT_PUBLIC_APP_URL`; в Redirect URLs добавете `<NEXT_PUBLIC_APP_URL>/auth/confirm`.
+- **Authentication → Email Templates → Magic Link**: тема „Вход в админ панела за профилактични прегледи“, съдържание от `supabase/templates/magic-link.html`.
+- **Authentication → SMTP Settings**: включете custom SMTP през Resend (host `smtp.resend.com`, port 465, user `resend`, парола = Resend API ключ, подател от потвърдения домейн). Вграденият SMTP на Supabase праща само до членове на екипа и няколко имейла на час.

@@ -4,9 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getPublicSupabaseEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
+const PUBLIC_ADMIN_PATHS = ["/admin/login"];
+
 /**
- * Refreshes the admin's Supabase session cookies on each request. This is not
- * an authorization check: admin pages must still verify the user and
+ * Refreshes the Supabase session cookies and sends signed-out visitors of
+ * /admin to the login page. This is only a convenience redirect, not
+ * authorization: admin pages, actions and exports check the session and
  * is_admin() on the server.
  */
 export async function updateSession(request: NextRequest) {
@@ -39,7 +42,20 @@ export async function updateSession(request: NextRequest) {
 
   // Triggers the token refresh when needed. Do not put code between
   // createServerClient and this call.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
+  const signedIn = Boolean(data?.claims?.sub);
+
+  const { pathname } = request.nextUrl;
+  const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
+  if (isAdminArea && !signedIn && !PUBLIC_ADMIN_PATHS.includes(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/login";
+    url.search = "";
+    const redirect = NextResponse.redirect(url);
+    // Keep any refreshed/cleared auth cookies.
+    for (const cookie of response.cookies.getAll()) redirect.cookies.set(cookie);
+    return redirect;
+  }
 
   return response;
 }

@@ -6,8 +6,8 @@ export async function proxy(request: NextRequest) {
   return updateSession(request);
 }
 
-// Only the admin panel uses Supabase Auth sessions. Public booking pages do
-// not touch auth cookies.
+// Only the admin panel and its sign-in confirmation use Supabase Auth
+// sessions. Public booking pages do not touch auth cookies.
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin", "/admin/:path*", "/auth/:path*"],
 };
