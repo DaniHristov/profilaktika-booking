@@ -41,14 +41,14 @@ isOneToOne: false
                   ]
                 },"bookings": {
                   Row: {
-                    "campaign_id": string,"cancel_token": string,"confirmation_sent_at": string | null,"consent_at": string,"created_at": string,"created_by": string | null,"email": string | null,"full_name": string,"id": string,"notes": string | null,"phone": string,"slot_id": string,"source": string,"status": string,"updated_at": string,"workplace": string | null
+                    "anonymized_at": string | null,"campaign_id": string,"cancel_token": string,"confirmation_sent_at": string | null,"consent_at": string,"created_at": string,"created_by": string | null,"email": string | null,"full_name": string,"id": string,"notes": string | null,"phone": string,"reminder_sent_at": string | null,"slot_id": string,"source": string,"status": string,"updated_at": string,"workplace": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "campaign_id": string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at": string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"slot_id": string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "anonymized_at"?: string | null,"campaign_id": string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at": string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name": string,"id"?: string,"notes"?: string | null,"phone": string,"reminder_sent_at"?: string | null,"slot_id": string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Update: {
-                    "campaign_id"?: string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"slot_id"?: string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
+                    "anonymized_at"?: string | null,"campaign_id"?: string,"cancel_token"?: string,"confirmation_sent_at"?: string | null,"consent_at"?: string,"created_at"?: string,"created_by"?: string | null,"email"?: string | null,"full_name"?: string,"id"?: string,"notes"?: string | null,"phone"?: string,"reminder_sent_at"?: string | null,"slot_id"?: string,"source"?: string,"status"?: string,"updated_at"?: string,"workplace"?: string | null
                   }
                   Relationships: [
                     {
@@ -208,12 +208,25 @@ isOneToOne: false
 "admin_update_slot":
 { Args: { "p_capacity": number,"p_is_blocked": boolean,"p_slot_id": string }; Returns: undefined
                            },
+"anonymize_old_bookings":
+{ Args: { "p_months": number }; Returns: number
+                           },
 "assert_admin":
 { Args: Record<PropertyKey, never>; Returns: undefined
                            },
 "book_slot":
 { Args: { "p_email": string,"p_full_name": string,"p_notes": string,"p_phone": string,"p_slot_id": string,"p_workplace": string }; Returns: {
               "booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
+"bookings_due_for_reminder":
+{ Args: { "p_limit": number }; Returns: {
+              "allow_public_cancel": boolean,"booking_id": string,"campaign_title": string,"cancel_token": string,"duration_min": number,"email": string,"full_name": string,"location_address": string,"location_note": string,"starts_at": string
+            }[]
+                           },
+"bookings_needing_confirmation":
+{ Args: { "p_limit": number }; Returns: {
+              "booking_id": string
             }[]
                            },
 "cancel_booking_by_token":
