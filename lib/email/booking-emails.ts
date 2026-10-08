@@ -8,6 +8,7 @@ import { formatDate, formatTime, formatWeekday } from "@/lib/datetime";
 import { BookingCancelledEmail } from "@/lib/email/templates/booking-cancelled";
 import { BookingConfirmationEmail } from "@/lib/email/templates/booking-confirmation";
 import { BookingMovedEmail } from "@/lib/email/templates/booking-moved";
+import { BookingReminderEmail } from "@/lib/email/templates/booking-reminder";
 import type { EmailMessage } from "@/lib/email/transport";
 
 export type BookingEmailData = {
@@ -112,5 +113,24 @@ export async function buildMovedEmail(
     attachments: [calendarAttachment(data, "PUBLISH", revision())],
     // One email per target time, so retrying the same move does not resend.
     idempotencyKey: `booking-moved/${data.bookingId}/${data.startsAt.toISOString()}`,
+  };
+}
+
+export async function buildReminderEmail(
+  data: BookingEmailData,
+  cancelUrl: string | null,
+): Promise<EmailMessage> {
+  const element = createElement(BookingReminderEmail, {
+    fullName: data.fullName,
+    campaignTitle: data.campaignTitle,
+    details: details(data),
+    cancelUrl,
+  });
+  return {
+    to: data.email,
+    subject: `Напомняне: профилактичен преглед утре, ${formatDate(data.startsAt)} от ${formatTime(data.startsAt)}`,
+    html: await render(element),
+    text: await render(element, { plainText: true }),
+    idempotencyKey: `booking-reminder/${data.bookingId}/${data.startsAt.toISOString()}`,
   };
 }
