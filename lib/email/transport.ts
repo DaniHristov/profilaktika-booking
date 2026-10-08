@@ -100,7 +100,9 @@ export function createFileTransport(dir: string): EmailTransport {
 export function getEmailTransport(
   env: Record<string, string | undefined> = process.env,
 ): EmailTransport {
-  const apiKey = env.RESEND_API_KEY?.trim();
+  // EMAIL_TRANSPORT=file forces file previews (used by the e2e tests).
+  const forceFile = env.EMAIL_TRANSPORT === "file";
+  const apiKey = forceFile ? undefined : env.RESEND_API_KEY?.trim();
   if (apiKey) {
     const from = env.EMAIL_FROM?.trim();
     if (!from) throw new Error("Invalid or missing environment variables: EMAIL_FROM");

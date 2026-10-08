@@ -190,3 +190,12 @@ describe("moved email", () => {
     expect(ics.content).toMatch(/SEQUENCE:[1-9]\d*/);
   });
 });
+
+describe("EMAIL_TRANSPORT override", () => {
+  it("forces file previews even when a Resend key is set, but never on Vercel", () => {
+    expect(typeof getEmailTransport({ EMAIL_TRANSPORT: "file", RESEND_API_KEY: "re_x" })).toBe("function");
+    expect(() => getEmailTransport({ EMAIL_TRANSPORT: "file", RESEND_API_KEY: "re_x", VERCEL: "1" })).toThrow(
+      "RESEND_API_KEY",
+    );
+  });
+});
